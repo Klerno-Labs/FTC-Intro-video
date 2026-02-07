@@ -2,33 +2,34 @@ import React from 'react';
 import {
   AbsoluteFill,
   useCurrentFrame,
+  useVideoConfig,
   interpolate,
-  Easing,
+  spring,
+  Sequence,
 } from 'remotion';
 import { BackgroundMotion } from '../components/BackgroundMotion';
 import { TextBlock } from '../components/TextBlock';
 import { AccentLine } from '../components/AccentLine';
 import { IndustrialVisual } from '../components/IndustrialVisual';
-import { FadeTransition } from '../components/FadeTransition';
-import { colors, fonts, fontWeights, fontSizes, letterSpacing, motion, layout } from '../theme';
-import { scenes, transitions } from '../timing';
+import { colors, fonts, fontWeights, fontSizes, letterSpacing, springPresets, layout } from '../theme';
+import { scenes } from '../timing';
 
 /**
  * Scene 03 — What FTC Delivers (11s)
  *
- * Product categories with performance focus.
- * Visual rhythm synced to narration cadence.
+ * Products slide in with spring(damping:200), active highlight borders.
+ * TransitionSeries handles scene transitions.
  *
  * Narration: "Invicta liquid-solid filtration. Strata liquid-liquid separation.
  * Tersus gas filtration. Engineered for performance. Built for demanding environments."
  */
 
-interface ProductLine {
+type ProductLine = {
   name: string;
   description: string;
   detail: string;
   visualVariant: 'filtration' | 'separation' | 'system';
-}
+};
 
 const products: ProductLine[] = [
   {
@@ -53,16 +54,13 @@ const products: ProductLine[] = [
 
 export const Scene03: React.FC = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const duration = scenes.scene03.duration;
-
-  // Calculate which product is "active" based on timing
-  const productDuration = Math.floor(duration / products.length);
+  const productInterval = Math.floor(duration / products.length);
 
   return (
-    <FadeTransition totalDuration={duration} fadeInDuration={15} fadeOutDuration={15}>
-      <AbsoluteFill>
-        <BackgroundMotion variant="particles" intensity={0.6} />
-      </AbsoluteFill>
+    <AbsoluteFill>
+      <BackgroundMotion variant="particles" intensity={0.6} />
 
       <AbsoluteFill
         style={{
@@ -72,48 +70,27 @@ export const Scene03: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        {/* Left column — Product list */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 40,
-          }}
-        >
-          <TextBlock
-            text="Filtration Solutions"
-            variant="label"
-            delay={5}
-            align="left"
-          />
-          <AccentLine delay={12} width={60} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 40 }}>
+          <Sequence from={Math.round(0.2 * fps)} premountFor={fps}>
+            <TextBlock text="Filtration Solutions" variant="label" delay={0} align="left" />
+          </Sequence>
+
+          <Sequence from={Math.round(0.4 * fps)} premountFor={fps}>
+            <AccentLine delay={0} width={60} />
+          </Sequence>
 
           {products.map((product, i) => {
-            const itemDelay = 20 + i * 30;
-            const f = Math.max(0, frame - itemDelay);
-
-            const opacity = interpolate(f, [0, 25], [0, 1], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
+            const productDelay = Math.round((0.8 + i * 1.0) * fps);
+            const inProgress = spring({
+              frame: frame - productDelay,
+              fps,
+              config: springPresets.smooth,
             });
-
-            const translateX = interpolate(f, [0, 25], [-30, 0], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
-            });
-
-            // Active highlight — product pulses when narration reaches it
+            const opacity = interpolate(inProgress, [0, 1], [0, 1]);
+            const translateX = interpolate(inProgress, [0, 1], [-30, 0]);
             const isActive =
-              frame >= itemDelay + 10 && frame < itemDelay + productDuration;
-            const highlightOpacity = isActive
-              ? interpolate(
-                  frame - (itemDelay + 10),
-                  [0, 15],
-                  [0, 1],
-                  { extrapolateRight: 'clamp' }
-                )
-              : 0;
+              frame >= productDelay + Math.round(0.3 * fps) &&
+              frame < productDelay + productInterval;
 
             return (
               <div
@@ -125,11 +102,7 @@ export const Scene03: React.FC = () => {
                   flexDirection: 'column',
                   gap: 6,
                   paddingLeft: 20,
-                  borderLeft: `2px solid ${
-                    isActive
-                      ? colors.blue
-                      : `rgba(46, 109, 173, ${0.2 + highlightOpacity * 0.8})`
-                  }`,
+                  borderLeft: `2px solid ${isActive ? colors.blue : 'rgba(46, 109, 173, 0.2)'}`,
                 }}
               >
                 <div
@@ -171,17 +144,15 @@ export const Scene03: React.FC = () => {
           })}
         </div>
 
-        {/* Right column — Abstract industrial visual */}
         <div style={{ flex: 1, position: 'relative', height: '100%' }}>
           {products.map((product, i) => {
-            const itemDelay = 20 + i * 30;
-            const f = Math.max(0, frame - itemDelay);
-            const visualOpacity = interpolate(
-              f,
-              [0, 20, productDuration - 10, productDuration],
-              [0, 0.15, 0.15, 0],
-              { extrapolateRight: 'clamp', extrapolateLeft: 'clamp' }
-            );
+            const productDelay = Math.round((0.8 + i * 1.0) * fps);
+            const visualIn = spring({
+              frame: frame - productDelay,
+              fps,
+              config: springPresets.gentle,
+            });
+            const visualOpacity = interpolate(visualIn, [0, 1], [0, 0.18]);
 
             return (
               <AbsoluteFill key={product.name} style={{ opacity: visualOpacity }}>
@@ -191,6 +162,6 @@ export const Scene03: React.FC = () => {
           })}
         </div>
       </AbsoluteFill>
-    </FadeTransition>
+    </AbsoluteFill>
   );
 };

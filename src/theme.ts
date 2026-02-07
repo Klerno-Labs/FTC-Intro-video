@@ -2,6 +2,7 @@
  * FTC Filters — Design System
  * Colors, typography, spacing, and motion tokens.
  */
+import { fontFamily } from './fonts';
 
 // ─── Colors ──────────────────────────────────────────────
 export const colors = {
@@ -35,8 +36,8 @@ export const colors = {
 
 // ─── Typography ──────────────────────────────────────────
 export const fonts = {
-  heading: 'Inter, Helvetica Neue, Arial, sans-serif',
-  body: 'Inter, Helvetica Neue, Arial, sans-serif',
+  heading: fontFamily,
+  body: fontFamily,
   mono: 'JetBrains Mono, Fira Code, monospace',
 } as const;
 
@@ -78,12 +79,21 @@ export const spacing = {
 } as const;
 
 // ─── Motion ──────────────────────────────────────────────
+// Spring presets per remotion-dev/skills best practices.
+// damping:200 = smooth corporate reveal (no bounce).
+// damping:20 + stiffness:200 = snappy UI element entrance.
+export const springPresets = {
+  smooth: { damping: 200 },
+  snappy: { damping: 20, stiffness: 200 },
+  heavy: { damping: 15, stiffness: 80, mass: 2 },
+  gentle: { damping: 100, stiffness: 40 },
+} as const;
+
 export const motion = {
   // Easing curves
   easeOut: [0.16, 1, 0.3, 1] as [number, number, number, number],
   easeInOut: [0.4, 0, 0.2, 1] as [number, number, number, number],
   easeIn: [0.4, 0, 1, 1] as [number, number, number, number],
-  gentle: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
 
   // Duration presets (in frames at 30fps)
   fadeIn: 20,

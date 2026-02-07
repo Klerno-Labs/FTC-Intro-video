@@ -2,54 +2,47 @@ import React from 'react';
 import {
   AbsoluteFill,
   useCurrentFrame,
+  useVideoConfig,
   interpolate,
-  Easing,
+  spring,
+  Sequence,
 } from 'remotion';
 import { BackgroundMotion } from '../components/BackgroundMotion';
-import { TextBlock } from '../components/TextBlock';
 import { AccentLine } from '../components/AccentLine';
-import { FadeTransition } from '../components/FadeTransition';
-import { colors, fonts, fontWeights, fontSizes, letterSpacing, motion, layout } from '../theme';
-import { scenes, transitions } from '../timing';
+import { colors, fonts, fontWeights, fontSizes, letterSpacing, springPresets, layout } from '../theme';
+import { scenes } from '../timing';
 
 /**
  * Scene 04 — Trust & Quality (11s)
  *
  * Minimal typography. Strong negative space.
- * Core values appear one by one with quiet confidence.
+ * Core values appear with spring(damping:200) entrances.
  *
  * Narration: "Every product is designed, tested, and manufactured to outperform —
  * delivering consistency, precision, and measurable results."
  */
 
 const pillars = [
-  {
-    word: 'Quality',
-    detail: 'Products that outperform the competition',
-  },
-  {
-    word: 'Service',
-    detail: 'Custom solutions with 24/7 support',
-  },
-  {
-    word: 'Innovation',
-    detail: 'State-of-the-art research and development',
-  },
-  {
-    word: 'Integrity',
-    detail: 'The right product for every application',
-  },
+  { word: 'Quality', detail: 'Products that outperform the competition' },
+  { word: 'Service', detail: 'Custom solutions with 24/7 support' },
+  { word: 'Innovation', detail: 'State-of-the-art research and development' },
+  { word: 'Integrity', detail: 'The right product for every application' },
 ];
 
 export const Scene04: React.FC = () => {
   const frame = useCurrentFrame();
-  const duration = scenes.scene04.duration;
+  const { fps } = useVideoConfig();
+
+  const headingProgress = spring({
+    frame,
+    fps,
+    config: springPresets.smooth,
+    delay: Math.round(0.2 * fps),
+  });
 
   return (
-    <FadeTransition totalDuration={duration} fadeInDuration={15} fadeOutDuration={15}>
-      <AbsoluteFill>
-        <BackgroundMotion variant="default" intensity={0.5} />
-      </AbsoluteFill>
+    <AbsoluteFill>
+      <BackgroundMotion variant="default" intensity={0.5} />
 
       <AbsoluteFill
         style={{
@@ -59,46 +52,45 @@ export const Scene04: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        {/* Heading */}
-        <TextBlock
-          text="Engineered to Outperform"
-          variant="heading"
-          delay={5}
-          align="left"
-          maxWidth={700}
-        />
-
-        <div style={{ marginTop: 20, marginBottom: 50 }}>
-          <AccentLine delay={20} width={100} />
-        </div>
-
-        {/* Four pillars grid */}
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 60,
-            marginTop: 10,
+            opacity: interpolate(headingProgress, [0, 1], [0, 1]),
+            transform: `translateY(${interpolate(headingProgress, [0, 1], [20, 0])}px)`,
+            fontFamily: fonts.heading,
+            fontSize: fontSizes.xxl,
+            fontWeight: fontWeights.bold,
+            letterSpacing: letterSpacing.tight,
+            lineHeight: 1.1,
+            color: colors.white,
+            maxWidth: 700,
           }}
         >
+          Engineered to Outperform
+        </div>
+
+        <Sequence from={Math.round(0.6 * fps)} premountFor={fps}>
+          <div style={{ marginTop: 20, marginBottom: 50 }}>
+            <AccentLine delay={0} width={100} />
+          </div>
+        </Sequence>
+
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 60, marginTop: 10 }}>
           {pillars.map((pillar, i) => {
-            const itemDelay = 30 + i * 18;
-            const f = Math.max(0, frame - itemDelay);
-
-            const opacity = interpolate(f, [0, 25], [0, 1], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
+            const itemDelay = Math.round((1.0 + i * 0.5) * fps);
+            const inProgress = spring({
+              frame: frame - itemDelay,
+              fps,
+              config: springPresets.smooth,
             });
+            const opacity = interpolate(inProgress, [0, 1], [0, 1]);
+            const translateY = interpolate(inProgress, [0, 1], [24, 0]);
+            const numberOpacity = interpolate(inProgress, [0, 1], [0, 0.08]);
+            const lineWidth = interpolate(inProgress, [0, 1], [0, 40]);
 
-            const translateY = interpolate(f, [0, 25], [24, 0], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
-            });
-
-            // Counter animation for the number
-            const numberOpacity = interpolate(f, [10, 30], [0, 0.15], {
-              extrapolateRight: 'clamp',
-              extrapolateLeft: 'clamp',
+            const detailProgress = spring({
+              frame: frame - itemDelay - Math.round(0.3 * fps),
+              fps,
+              config: springPresets.smooth,
             });
 
             return (
@@ -114,7 +106,6 @@ export const Scene04: React.FC = () => {
                   flex: 1,
                 }}
               >
-                {/* Large background number */}
                 <div
                   style={{
                     position: 'absolute',
@@ -131,7 +122,6 @@ export const Scene04: React.FC = () => {
                   {String(i + 1).padStart(2, '0')}
                 </div>
 
-                {/* Pillar word */}
                 <div
                   style={{
                     fontFamily: fonts.heading,
@@ -146,24 +136,15 @@ export const Scene04: React.FC = () => {
                   {pillar.word}
                 </div>
 
-                {/* Small accent line */}
                 <div
                   style={{
-                    width: interpolate(f, [15, 40], [0, 40], {
-                      extrapolateRight: 'clamp',
-                      extrapolateLeft: 'clamp',
-                      easing: Easing.bezier(...motion.easeOut),
-                    }),
+                    width: lineWidth,
                     height: 2,
                     backgroundColor: colors.blue,
-                    opacity: interpolate(f, [15, 35], [0, 0.8], {
-                      extrapolateRight: 'clamp',
-                      extrapolateLeft: 'clamp',
-                    }),
+                    opacity: interpolate(inProgress, [0, 1], [0, 0.8]),
                   }}
                 />
 
-                {/* Detail text */}
                 <div
                   style={{
                     fontFamily: fonts.body,
@@ -172,10 +153,7 @@ export const Scene04: React.FC = () => {
                     color: colors.grey300,
                     lineHeight: 1.5,
                     maxWidth: 260,
-                    opacity: interpolate(f, [20, 40], [0, 1], {
-                      extrapolateRight: 'clamp',
-                      extrapolateLeft: 'clamp',
-                    }),
+                    opacity: interpolate(detailProgress, [0, 1], [0, 1]),
                   }}
                 >
                   {pillar.detail}
@@ -185,6 +163,6 @@ export const Scene04: React.FC = () => {
           })}
         </div>
       </AbsoluteFill>
-    </FadeTransition>
+    </AbsoluteFill>
   );
 };

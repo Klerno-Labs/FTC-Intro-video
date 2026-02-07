@@ -2,22 +2,23 @@ import React from 'react';
 import {
   AbsoluteFill,
   useCurrentFrame,
+  useVideoConfig,
   interpolate,
-  Easing,
+  spring,
+  Sequence,
 } from 'remotion';
 import { BackgroundMotion } from '../components/BackgroundMotion';
 import { TextBlock } from '../components/TextBlock';
 import { AccentLine } from '../components/AccentLine';
 import { IndustrialVisual } from '../components/IndustrialVisual';
-import { FadeTransition } from '../components/FadeTransition';
-import { colors, fonts, fontWeights, letterSpacing, motion, layout } from '../theme';
-import { scenes, transitions } from '../timing';
+import { colors, fonts, fontWeights, letterSpacing, springPresets, layout } from '../theme';
+import { scenes } from '../timing';
 
 /**
  * Scene 02 — Industrial Environment (9s)
  *
- * Visual cues of manufacturing and filtration systems.
- * Subtle text overlays show industries served.
+ * Industry tags stagger in with spring(damping:200) reveals.
+ * TransitionSeries handles scene transitions.
  *
  * Narration: "From oil and gas to chemical processing, power generation,
  * and water treatment — FTC systems operate where reliability is non-negotiable."
@@ -34,21 +35,20 @@ const industries = [
 
 export const Scene02: React.FC = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const duration = scenes.scene02.duration;
 
-  // Slow pan
   const panX = interpolate(frame, [0, duration], [0, -30], {
     extrapolateRight: 'clamp',
   });
 
   return (
-    <FadeTransition totalDuration={duration} fadeInDuration={15} fadeOutDuration={15}>
+    <AbsoluteFill>
       <AbsoluteFill style={{ transform: `translateX(${panX}px)` }}>
         <BackgroundMotion variant="grid" intensity={1.2} />
         <IndustrialVisual variant="system" delay={10} />
       </AbsoluteFill>
 
-      {/* Content overlay */}
       <AbsoluteFill
         style={{
           padding: `${layout.safeArea.vertical}px ${layout.safeArea.horizontal}px`,
@@ -57,41 +57,34 @@ export const Scene02: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        {/* Section label */}
-        <div style={{ marginBottom: 16 }}>
-          <TextBlock
-            text="Industries Served"
-            variant="label"
-            delay={10}
-            align="left"
-          />
-        </div>
+        <Sequence from={Math.round(0.3 * fps)} premountFor={fps}>
+          <div style={{ marginBottom: 16 }}>
+            <TextBlock text="Industries Served" variant="label" delay={0} align="left" />
+          </div>
+        </Sequence>
 
-        <AccentLine delay={20} width={80} />
+        <Sequence from={Math.round(0.5 * fps)} premountFor={fps}>
+          <AccentLine delay={0} width={80} />
+        </Sequence>
 
-        {/* Industry tags */}
         <div
           style={{
             display: 'flex',
             flexWrap: 'wrap',
             gap: 16,
             marginTop: 40,
-            maxWidth: 800,
+            maxWidth: 900,
           }}
         >
           {industries.map((industry, i) => {
-            const itemDelay = 30 + i * transitions.stagger;
-            const f = Math.max(0, frame - itemDelay);
-
-            const opacity = interpolate(f, [0, 20], [0, 1], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
+            const itemDelay = Math.round((0.8 + i * 0.15) * fps);
+            const progress = spring({
+              frame: frame - itemDelay,
+              fps,
+              config: springPresets.smooth,
             });
-
-            const translateY = interpolate(f, [0, 20], [14, 0], {
-              extrapolateRight: 'clamp',
-              easing: Easing.bezier(...motion.easeOut),
-            });
+            const opacity = interpolate(progress, [0, 1], [0, 1]);
+            const translateY = interpolate(progress, [0, 1], [14, 0]);
 
             return (
               <div
@@ -99,7 +92,7 @@ export const Scene02: React.FC = () => {
                 style={{
                   opacity,
                   transform: `translateY(${translateY}px)`,
-                  padding: '12px 28px',
+                  padding: '14px 32px',
                   border: `1px solid ${colors.blueSubtle}`,
                   borderRadius: 4,
                   fontFamily: fonts.body,
@@ -117,16 +110,17 @@ export const Scene02: React.FC = () => {
           })}
         </div>
 
-        {/* Supporting text */}
-        <div style={{ marginTop: 48, maxWidth: 640 }}>
-          <TextBlock
-            text="Where reliability is non-negotiable."
-            variant="subheading"
-            delay={70}
-            align="left"
-          />
-        </div>
+        <Sequence from={Math.round(2.5 * fps)} premountFor={fps}>
+          <div style={{ marginTop: 48, maxWidth: 640 }}>
+            <TextBlock
+              text="Where reliability is non-negotiable."
+              variant="subheading"
+              delay={0}
+              align="left"
+            />
+          </div>
+        </Sequence>
       </AbsoluteFill>
-    </FadeTransition>
+    </AbsoluteFill>
   );
 };

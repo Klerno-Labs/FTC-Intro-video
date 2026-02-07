@@ -2,21 +2,21 @@ import React from 'react';
 import {
   AbsoluteFill,
   useCurrentFrame,
+  useVideoConfig,
   interpolate,
-  Easing,
+  spring,
   Img,
   staticFile,
 } from 'remotion';
 import { BackgroundMotion } from '../components/BackgroundMotion';
-import { FadeTransition } from '../components/FadeTransition';
-import { colors, fonts, fontWeights, fontSizes, letterSpacing, motion, layout } from '../theme';
+import { colors, fonts, fontWeights, fontSizes, letterSpacing, springPresets } from '../theme';
 import { scenes } from '../timing';
 
 /**
- * Scene 05 — Presentation Handoff (6s)
+ * Scene 05 — Presentation Handoff (7s)
  *
- * Calm ending that returns to brand mark.
- * Prepares viewer for the salesperson presentation.
+ * Calm ending with brand mark. spring(damping:200) entrance.
+ * TransitionSeries handles the final fade.
  *
  * Narration: "Filtration Technology Corporation.
  * Quality matched by unparalleled service."
@@ -24,51 +24,37 @@ import { scenes } from '../timing';
 
 export const Scene05: React.FC = () => {
   const frame = useCurrentFrame();
-  const duration = scenes.scene05.duration;
+  const { fps } = useVideoConfig();
 
-  // Logo re-entrance
-  const logoOpacity = interpolate(frame, [10, 35], [0, 1], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-    easing: Easing.bezier(...motion.easeOut),
+  const logoProgress = spring({
+    frame,
+    fps,
+    config: springPresets.smooth,
+    delay: Math.round(0.3 * fps),
   });
+  const logoOpacity = interpolate(logoProgress, [0, 1], [0, 1]);
+  const logoScale = interpolate(logoProgress, [0, 1], [0.95, 1]);
 
-  const logoScale = interpolate(frame, [10, 35], [0.95, 1], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-    easing: Easing.bezier(...motion.easeOut),
+  const lineProgress = spring({
+    frame,
+    fps,
+    config: springPresets.smooth,
+    delay: Math.round(0.8 * fps),
   });
+  const lineWidth = interpolate(lineProgress, [0, 1], [0, 160]);
 
-  // Closing line
-  const closingOpacity = interpolate(frame, [40, 65], [0, 1], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-    easing: Easing.bezier(...motion.easeOut),
+  const closingProgress = spring({
+    frame,
+    fps,
+    config: springPresets.smooth,
+    delay: Math.round(1.3 * fps),
   });
-
-  const closingY = interpolate(frame, [40, 65], [10, 0], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-    easing: Easing.bezier(...motion.easeOut),
-  });
-
-  // Accent line
-  const lineWidth = interpolate(frame, [25, 55], [0, 160], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-    easing: Easing.bezier(...motion.easeOut),
-  });
-
-  const lineOpacity = interpolate(frame, [25, 45], [0, 1], {
-    extrapolateRight: 'clamp',
-    extrapolateLeft: 'clamp',
-  });
+  const closingOpacity = interpolate(closingProgress, [0, 1], [0, 1]);
+  const closingY = interpolate(closingProgress, [0, 1], [10, 0]);
 
   return (
-    <FadeTransition totalDuration={duration} fadeInDuration={15} fadeOutDuration={20}>
-      <AbsoluteFill>
-        <BackgroundMotion variant="default" intensity={0.4} />
-      </AbsoluteFill>
+    <AbsoluteFill>
+      <BackgroundMotion variant="default" intensity={0.4} />
 
       <AbsoluteFill
         style={{
@@ -78,35 +64,21 @@ export const Scene05: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        {/* Logo */}
-        <div
-          style={{
-            opacity: logoOpacity,
-            transform: `scale(${logoScale})`,
-          }}
-        >
-          <Img
-            src={staticFile('logo.svg')}
-            style={{
-              width: 400,
-              height: 'auto',
-            }}
-          />
+        <div style={{ opacity: logoOpacity, transform: `scale(${logoScale})` }}>
+          <Img src={staticFile('logo.svg')} style={{ width: 400, height: 'auto' }} />
         </div>
 
-        {/* Accent line */}
         <div
           style={{
             width: lineWidth,
             height: 1,
             background: `linear-gradient(90deg, transparent, ${colors.blue}, transparent)`,
-            opacity: lineOpacity,
+            opacity: interpolate(lineProgress, [0, 1], [0, 1]),
             marginTop: 32,
             marginBottom: 28,
           }}
         />
 
-        {/* Closing statement */}
         <div
           style={{
             opacity: closingOpacity,
@@ -123,6 +95,6 @@ export const Scene05: React.FC = () => {
           Quality Matched by Unparalleled Service
         </div>
       </AbsoluteFill>
-    </FadeTransition>
+    </AbsoluteFill>
   );
 };
