@@ -1,0 +1,30 @@
+{
+  "name": "ftc-intro-video",
+  "version": "1.0.0",
+  "description": "FTC Filters — Cinematic Intro Video (Remotion)",
+  "scripts": {
+    "start": "npx remotion studio src/index.ts",
+    "build": "npx remotion render src/index.ts FTCIntro out/ftc-intro.mp4",
+    "render": "npx remotion render src/index.ts FTCIntro out/ftc-intro.mp4",
+    "upgrade": "npx remotion upgrade"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:65008/git/Klerno-Labs/FTC-Intro-video"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/cli": "4.0.419",
+    "@remotion/player": "4.0.419",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.419"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}

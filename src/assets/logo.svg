@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" fill="none">
+  <!-- Placeholder FTC logo — replace with official logo.svg -->
+  <rect x="0" y="0" width="400" height="120" rx="4" fill="none"/>
+  <text x="10" y="78" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="72" font-weight="700" fill="#FFFFFF" letter-spacing="0.08em">FTC</text>
+  <line x1="200" y1="22" x2="200" y2="98" stroke="#2E6DAD" stroke-width="2"/>
+  <text x="216" y="55" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="400" fill="#C5CDD8" letter-spacing="0.14em">FILTRATION</text>
+  <text x="216" y="78" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="400" fill="#C5CDD8" letter-spacing="0.14em">TECHNOLOGY</text>
+  <text x="216" y="101" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="400" fill="#C5CDD8" letter-spacing="0.14em">CORPORATION</text>
+</svg>
