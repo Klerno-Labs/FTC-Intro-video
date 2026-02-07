@@ -2,7 +2,9 @@
 
 A narrated cinematic intro video for FTC Filters (Filtration Technology Corporation) salesperson presentations. Built with [Remotion](https://remotion.dev/).
 
-**1920×1080 · 30fps · ~43 seconds**
+**1920×1080 · 30fps · ~42 seconds**
+
+https://github.com/Klerno-Labs/FTC-Intro-video/raw/claude/ftc-filters-intro-video-LPHCv/out/ftc-intro.mp4
 
 ---
 
